@@ -1,4 +1,3 @@
-// src/hooks/useUser.js
 import { useState } from "react";
 import userApi from "../service/api/userApi";
 
@@ -6,7 +5,7 @@ const useUser = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Register (Create)
+  // Register
   const registerUser = async (newUser) => {
     try {
       setLoading(true);
@@ -21,7 +20,7 @@ const useUser = () => {
     }
   };
 
-  // ✅ Login (Read by username & password)
+  // Login
   const loginUser = async (username, password) => {
     try {
       setLoading(true);
@@ -44,13 +43,13 @@ const useUser = () => {
     }
   };
 
-  // ✅ Get user by id
+  // Get user by id
   const fetchUser = async (id) => {
     try {
       setLoading(true);
       const res = await userApi.get(`/users/${id}`);
       setUser(res.data);
-      return res.data; // 🔥 return biar bisa dipakai
+      return res.data;
     } catch (error) {
       console.error("Error fetching user:", error);
       throw error;
@@ -59,7 +58,7 @@ const useUser = () => {
     }
   };
 
-  // ✅ Update user
+  // Update user
   const updateUser = async (id, updatedUser) => {
     try {
       const res = await userApi.put(`/users/${id}`, updatedUser);
@@ -71,7 +70,7 @@ const useUser = () => {
     }
   };
 
-  // ✅ Delete user
+  // Delete user
   const deleteUser = async (id) => {
     try {
       await userApi.delete(`/users/${id}`);

@@ -5,7 +5,7 @@ import FormProfil from "../components/formProfil";
 import EditProfil from "../components/editProfil";
 import MyList from "../components/myListContainer";
 import Footer from "../components/footer";
-import useUser from "../hooks/useUser"; // hook API
+import useUser from "../hooks/useUser";
 
 const Profil = () => {
   const { fetchUser, updateUser, deleteUser } = useUser();
@@ -17,51 +17,56 @@ const Profil = () => {
 
   const [loading, setLoading] = useState(true);
 
-  // Foto berlangganan tetap fix
   const [subscribePhoto] = useState("/assets/Belum-berlangganan.png");
 
   const navigate = useNavigate();
+  const userId = localStorage.getItem("userId");
 
-  const userId = localStorage.getItem("userId"); // ambil ID user dari login/register
-
-  // Ambil data user dari API
   useEffect(() => {
     const loadUser = async () => {
-      if (userId) {
-        try {
-          const data = await fetchUser(userId);
-          if (data) {
-            setUsername(data.username || "");
-            setEmail(data.email || "");
-            setPassword(data.password || "");
-          }
-          // ambil foto dari localStorage kalau ada
-          const savedPhoto = localStorage.getItem("profilePhoto");
-          if (savedPhoto) setPhoto(savedPhoto);
-        } catch (error) {
-          console.error("Error fetching user:", error);
-        } finally {
-          setLoading(false);
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await fetchUser(userId);
+        if (data) {
+          setUsername(data.username || "");
+          setEmail(data.email || "");
+          setPassword(data.password || "");
         }
-      } else {
+
+        const savedPhoto = localStorage.getItem("profilePhoto");
+        if (savedPhoto) setPhoto(savedPhoto);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      } finally {
         setLoading(false);
       }
     };
-    loadUser();
-  }, [userId, fetchUser]);
 
-  // Simpan perubahan
+    loadUser();
+  }, [userId]);
+
   const handleSave = async () => {
     try {
-      await updateUser(userId, { username, email, password });
+      const updated = await updateUser(userId, { username, email, password });
+
+      setUsername(updated.username || "");
+      setEmail(updated.email || "");
+      setPassword(updated.password || "");
+
       localStorage.setItem("profilePhoto", photo);
+
       alert("Profil berhasil disimpan!");
     } catch (error) {
       console.error("Error saving profile:", error);
+      alert("Gagal menyimpan profil!");
     }
   };
 
-  // Tambah akun (redirect ke register)
+  // Tambah akun
   const handleAddAccount = () => {
     navigate("/register");
   };
@@ -72,10 +77,17 @@ const Profil = () => {
       await deleteUser(userId);
       localStorage.removeItem("userId");
       localStorage.removeItem("profilePhoto");
+
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setPhoto("/assets/poto-profil.png");
+
       alert("Akun berhasil dihapus!");
       navigate("/register");
     } catch (error) {
       console.error("Error deleting account:", error);
+      alert("Gagal menghapus akun!");
     }
   };
 
@@ -92,7 +104,7 @@ const Profil = () => {
       <NavBar menuItems={menuItems} />
 
       <div className="bg-[rgba(24,26,28,1)] w-full h-full pt-5">
-        {/* Card Berlangganan */}
+        {/*Card Berlangganan */}
         <div className="flex w-[320px] h-[191px] font-lato text-white bg-[rgba(61,65,66,1)] rounded-[12px] mx-5 pt-6 md:absolute md:w-[558px] md:h-[193px] md:ml-200 md:mt-25">
           <img
             className="w-[78px] h-[78px] ml-5.5 rounded-full object-cover"
@@ -130,7 +142,7 @@ const Profil = () => {
           <EditProfil
             type="email"
             label="Email"
-            name="Email"
+            name="email"
             placeholder="Masukan Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -139,13 +151,12 @@ const Profil = () => {
           <EditProfil
             type="password"
             label="Password"
-            name="Password"
+            name="password"
             placeholder="Masukan Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          {/* Tombol Simpan / Tambah / Hapus */}
           <div className="flex text-white font-lato mx-5 md:mx-20 ">
             <button
               onClick={handleSave}
