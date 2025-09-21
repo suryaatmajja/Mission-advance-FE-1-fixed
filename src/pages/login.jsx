@@ -1,29 +1,25 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import InputField from "../components/input";
 import InputPassword from "../components/inputPassword";
 import Button from "../components/button";
 import Logo from "../components/logo";
+import useUser from "../hooks/useUser";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { loginUser } = useUser();
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-
-    if (!storedUser) {
-      alert("Belum ada akun terdaftar, silakan daftar dulu.");
-      return;
-    }
-
-    if (storedUser.username === username && storedUser.password === password) {
-      localStorage.setItem("isLoggedIn", true);
+    try {
+      await loginUser(username, password);
       alert("Welcome!");
-      window.location.href = "/Beranda"; // arahkan ke halaman dashboard
-    } else {
-      alert("Username atau password salah!");
+      navigate("/Beranda");
+    } catch (err) {
+      alert(err.message || "Username atau password salah!");
     }
   };
 

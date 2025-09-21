@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const userApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // sama kayak history
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 export default userApi;

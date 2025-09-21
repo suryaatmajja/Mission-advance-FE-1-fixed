@@ -1,35 +1,38 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import InputField from "../components/input";
 import InputPassword from "../components/inputPassword";
 import Button from "../components/button";
 import Logo from "../components/logo";
+import useUser from "../hooks/useUser";
 
 const Register = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { registerUser } = useUser();
+  const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
-    // Validasi
     if (!username || !email || !password) {
       alert("Username, email, dan password wajib diisi!");
       return;
     }
-
     if (password !== confirmPassword) {
       alert("Konfirmasi password tidak sesuai!");
       return;
     }
 
-    // Simpan user ke localStorage
-    const newUser = { username, email, password };
-    localStorage.setItem("user", JSON.stringify(newUser));
-
-    alert("Registrasi berhasil! Silakan login.");
-    window.location.href = "/login";
+    try {
+      await registerUser({ username, email, password });
+      alert("Registrasi berhasil! Silakan login.");
+      navigate("/login");
+    } catch {
+      alert("Registrasi gagal, coba lagi!");
+    }
   };
 
   return (

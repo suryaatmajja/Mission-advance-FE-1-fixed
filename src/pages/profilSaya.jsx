@@ -5,46 +5,76 @@ import FormProfil from "../components/formProfil";
 import EditProfil from "../components/editProfil";
 import MyList from "../components/myListContainer";
 import Footer from "../components/footer";
+import useUser from "../hooks/useUser"; // hook API
 
 const Profil = () => {
+  const { fetchUser, updateUser, deleteUser } = useUser();
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [photo, setPhoto] = useState("/assets/poto-profil.png");
+
+  const [loading, setLoading] = useState(true);
 
   // Foto berlangganan tetap fix
   const [subscribePhoto] = useState("/assets/Belum-berlangganan.png");
 
   const navigate = useNavigate();
 
-  // Ambil data user dari localStorage
-  useEffect(() => {
-    const savedUser = JSON.parse(localStorage.getItem("user"));
-    if (savedUser) {
-      setUsername(savedUser.username || "");
-      setEmail(savedUser.email || "");
-      setPassword(savedUser.password || "");
-      setPhoto(savedUser.photo || "/assets/poto-profil.png");
-    }
-  }, []);
+  const userId = localStorage.getItem("userId"); // ambil ID user dari login/register
 
-  // Simpan data user
-  const handleSave = () => {
-    const updatedUser = { username, email, password, photo };
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-    alert("Profil berhasil disimpan!");
+  // Ambil data user dari API
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (userId) {
+        try {
+          const data = await fetchUser(userId);
+          if (data) {
+            setUsername(data.username || "");
+            setEmail(data.email || "");
+            setPassword(data.password || "");
+          }
+          // ambil foto dari localStorage kalau ada
+          const savedPhoto = localStorage.getItem("profilePhoto");
+          if (savedPhoto) setPhoto(savedPhoto);
+        } catch (error) {
+          console.error("Error fetching user:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchUser();
+  }, [userId, fetchUser]);
+
+  // Simpan perubahan
+  const handleSave = async () => {
+    try {
+      await updateUser(userId, { username, email, password });
+      localStorage.setItem("profilePhoto", photo);
+      alert("Profil berhasil disimpan!");
+    } catch (error) {
+      console.error("Error saving profile:", error);
+    }
   };
 
-  // Tombol Tambah Akun langsung ke halaman registrasi
+  // Tambah akun (redirect ke register)
   const handleAddAccount = () => {
     navigate("/register");
   };
 
   // Hapus akun
-  const handleDeleteAccount = () => {
-    localStorage.removeItem("user");
-    alert("Akun berhasil dihapus!");
-    navigate("/register"); // redirect ke register
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteUser(userId);
+      localStorage.removeItem("userId");
+      localStorage.removeItem("profilePhoto");
+      alert("Akun berhasil dihapus!");
+      navigate("/register");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+    }
   };
 
   const menuItems = [
@@ -52,6 +82,8 @@ const Profil = () => {
     { name: "Film", path: "/#" },
     { name: "Daftar Saya", path: "/daftar-saya" },
   ];
+
+  if (loading) return <p className="text-white p-5">Loading profil...</p>;
 
   return (
     <>
@@ -80,7 +112,7 @@ const Profil = () => {
         </div>
 
         {/* Profil Saya */}
-        <FormProfil />
+        <FormProfil photo={photo} setPhoto={setPhoto} />
 
         {/* Input Edit Profil */}
         <div className="w-full h-full bg-[rgba(24,26,28,1)] pb-4">
