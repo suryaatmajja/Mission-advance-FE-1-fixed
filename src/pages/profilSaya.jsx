@@ -26,7 +26,7 @@ const Profil = () => {
 
   // Ambil data user dari API
   useEffect(() => {
-    const fetchUser = async () => {
+    const loadUser = async () => {
       if (userId) {
         try {
           const data = await fetchUser(userId);
@@ -43,9 +43,11 @@ const Profil = () => {
         } finally {
           setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
     };
-    fetchUser();
+    loadUser();
   }, [userId, fetchUser]);
 
   // Simpan perubahan

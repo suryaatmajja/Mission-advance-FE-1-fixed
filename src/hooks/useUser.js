@@ -50,8 +50,10 @@ const useUser = () => {
       setLoading(true);
       const res = await userApi.get(`/users/${id}`);
       setUser(res.data);
+      return res.data; // 🔥 return biar bisa dipakai
     } catch (error) {
       console.error("Error fetching user:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
